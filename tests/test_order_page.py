@@ -1,12 +1,9 @@
 import pytest
 import allure
 
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as ec
-
-from data.data import *
-from pages.order_page import *
-from pages.main_page import *
+from data.data import URL, OrderData 
+from pages.order_page import OrderPage
+from pages.main_page import MainPage
 
 @allure.suite('Тестирование страницы заказа Яндекс Самокат')
 @allure.sub_suite('Оформление заказа самоката') 
@@ -20,9 +17,7 @@ class TestOrderFlow:
         "Заказ через кнопку в хедере: заполнены только обязательные поля",
         "Заказ через кнопку в центре страницы: заполнены все поля"    
     ])
-    def test_order_scooter_successful(self, driver, click_button, user_data):
-        main_page = MainPage(driver)
-        order_page = OrderPage(driver)
+    def test_order_scooter_successful(self, main_page, order_page, click_button, user_data):
         data = OrderData.data_set[user_data]
 
         with allure.step('Открываем главную страницу'):
@@ -57,22 +52,20 @@ class TestOrderFlow:
 @allure.sub_suite('Редиректы логотипов в хедере') 
 class TestLogoRedirections:
     @allure.title('Клик по логотипу "Самокат" возвращает на главную')
-    def test_click_scooter_logo_directs_to_main_page_true(self, driver):
-        main_page = MainPage(driver)
+    def test_click_scooter_logo_directs_to_main_page_true(self, main_page, order_page):
         with allure.step('Открываем страницу заказа'):
-            driver.get(URL.url_order)
+            order_page.open_order_page()
         with allure.step('Кликаем по логотипу "Самокат" в хэдере'):
-            main_page.click_scooter_logo()
+            order_page.click_scooter_logo()
         with allure.step('Проверяем, что осуществлён переход на главную страницу Яндекс Самокат'):
             assert main_page.wait_for_url_to_be(URL.url_main), f"Ожидался переход на {URL.url_main}. Текущий URL {main_page.get_current_url()}"
 
     @allure.title('Клик по логотипу "Яндекс" перенаправляет на "Дзен" в новом окне')
-    def test_click_yandex_logo_directs_to_dzen_true(self, driver):
-        main_page = MainPage(driver)
+    def test_click_yandex_logo_directs_to_dzen_true(self, main_page, order_page):
         with allure.step('Открываем страницу заказа'):
-            driver.get(URL.url_order)
+            order_page.open_order_page()
         with allure.step('Кликаем по логотипу "Яндекс" в хэдере'):
-            main_page.click_yandex_logo()
+            order_page.click_yandex_logo()
         with allure.step('Переходим на новую вкладку'):
             main_page.switch_to_new_window()
         with allure.step('Проверяем, что осуществлён переход на Яндекс Дзен'):

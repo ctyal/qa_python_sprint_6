@@ -1,11 +1,9 @@
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as ec
 
-from data.data import *
+from pages.base_page import BasePage
+from data.data import URL
 
-class OrderPage:
+class OrderPage(BasePage):
     first_name_input = (By.XPATH, "//input[@placeholder='* Имя']")
     last_name_input = (By.XPATH, "//input[@placeholder='* Фамилия']")
     address_input = (By.XPATH, "//input[@placeholder='* Адрес: куда привезти заказ']")
@@ -21,45 +19,44 @@ class OrderPage:
     confirm_button = (By.XPATH, "//button[contains(@class, 'Button_Middle') and contains(text(), 'Да')]")
     confirmation_window_header = (By.XPATH, "//*[contains(@class, 'Order_ModalHeader')]")
 
-    def __init__(self,driver):
-        self.driver = driver
+    def open_order_page(self):
+        self.open_url(URL.url_order)
 
     def fill_personal_data(self, first_name, last_name, address, metro_station, phone):
-        self.driver.find_element(*self.first_name_input).send_keys(first_name)
-        self.driver.find_element(*self.last_name_input).send_keys(last_name)
-        self.driver.find_element(*self.address_input).send_keys(address)
+        self.send_keys(self.first_name_input, first_name)
+        self.send_keys(self.last_name_input, last_name)
+        self.send_keys(self.address_input, address)
 
-        metro_input = self.driver.find_element(*self.metro_station_input)
-        self.driver.execute_script("arguments[0].click();", metro_input)
-        metro_input.send_keys(metro_station)
-        target_station_locator = (By.XPATH, f".//ul//button[./div[text()='{metro_station}']]")
-        suggested_station = WebDriverWait(self.driver, 10).until(ec.element_to_be_clickable(target_station_locator))
-        suggested_station.click()
+        self.click_element_js(self.metro_station_input)
+        self.send_keys(self.metro_station_input, metro_station)
+        target_station_locator = (By.XPATH, f"//ul[contains(@class, 'select-search')]//button[./div[text()='{metro_station}']]")
+        self.wait_for_element_clickable(target_station_locator)
+        self.click_element(target_station_locator)
 
-        self.driver.find_element(*self.phone_input).send_keys(phone)
-        next_btn = self.driver.find_element(*self.next_button)
-        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", next_btn)
-        WebDriverWait(self.driver, 10).until(ec.element_to_be_clickable(self.next_button)).click()
+        self.send_keys(self.phone_input, phone)
+
+        self.wait_for_element_clickable(self.next_button)
+        self.click_element_js(self.next_button)
 
     def fill_rent_data(self, date, rental_period, color, comment):
-        set_date = WebDriverWait(self.driver, 10).until(ec.visibility_of_element_located(self.date_input))
-        self.driver.execute_script("arguments[0].click();", set_date)
-        set_date.send_keys(date)
-        set_date.send_keys(Keys.ENTER)
-        dropdown = WebDriverWait(self.driver, 10).until(ec.element_to_be_clickable(self.rental_period_dropdown))
-        dropdown.click()
+        self.wait_for_element_visible(self.date_input)
+        self.click_element_js(self.date_input) 
+        self.send_keys(self.date_input, date)
+        self.press_enter(self.date_input)
+
+        self.wait_for_element_clickable(self.rental_period_dropdown)
+        self.click_element(self.rental_period_dropdown)
         rental_period_option = (By.XPATH, f"//div[@class='Dropdown-option' and text()='{rental_period}']")
-        self.driver.find_element(*rental_period_option).click()
+        self.click_element(rental_period_option)
         if color:
             color_checkbox = (By.XPATH, f"//label[contains(text(), '{color}')]")
-            self.driver.find_element(*color_checkbox).click()
-        self.driver.find_element(*self.comment_input).send_keys(comment)
-        self.driver.find_element(*self.order_button).click()
+            self.click_element(color_checkbox)
+        self.send_keys(self.comment_input, comment)
+        self.click_element(self.order_button)
 
     def confirm_order(self):
-         WebDriverWait(self.driver, 3).until(ec.element_to_be_clickable(self.confirm_button)).click()
+        self.click_element(self.confirm_button)
 
     def check_confirmation_window_text(self):
-        confirmation = WebDriverWait(self.driver, 5).until(ec.visibility_of_element_located(self.confirmation_window_header))
-        return confirmation.text
+        return self.wait_for_element_visible(self.confirmation_window_header).text
     
