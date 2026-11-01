@@ -1,3 +1,4 @@
+import allure
 from selenium.webdriver.common.by import By
 
 from pages.base_page import BasePage
@@ -19,9 +20,11 @@ class OrderPage(BasePage):
     confirm_button = (By.XPATH, "//button[contains(@class, 'Button_Middle') and contains(text(), 'Да')]")
     confirmation_window_header = (By.XPATH, "//*[contains(@class, 'Order_ModalHeader')]")
 
+    @allure.step("Открыть страницу оформления заказа")
     def open_order_page(self):
         self.open_url(URL.url_order)
 
+    @allure.step("Заполнить персональные данные: {first_name} {last_name}, адрес: {address}, метро: {metro_station}, телефон: {phone}")
     def fill_personal_data(self, first_name, last_name, address, metro_station, phone):
         self.send_keys(self.first_name_input, first_name)
         self.send_keys(self.last_name_input, last_name)
@@ -38,6 +41,7 @@ class OrderPage(BasePage):
         self.wait_for_element_clickable(self.next_button)
         self.click_element_js(self.next_button)
 
+    @allure.step("Заполнить данные аренды: дата {date}, период {rental_period}, цвет: {color}, комментарий: {comment}")
     def fill_rent_data(self, date, rental_period, color, comment):
         self.wait_for_element_visible(self.date_input)
         self.click_element_js(self.date_input) 
@@ -54,9 +58,11 @@ class OrderPage(BasePage):
         self.send_keys(self.comment_input, comment)
         self.click_element(self.order_button)
 
+    @allure.step("Подтвердить заказ")
     def confirm_order(self):
         self.click_element(self.confirm_button)
 
+    @allure.step("Проверить текст в окне подтверждения")
     def check_confirmation_window_text(self):
         return self.wait_for_element_visible(self.confirmation_window_header).text
     
